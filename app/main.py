@@ -10,7 +10,7 @@ FIREBASE_CFG = {}
 FIREBASE_CFG[ "projectId" ] = "fasterclass-f83ac"
 FIREBASE_CFG[ "databaseURL" ] = "https://fasterclass-f83ac.firebaseio.com"
 
-credential = credentials.Certificate( os.environ.get( "GOOGLE_APPLICATION_CREDENTIALS" ) )
+credential = credentials.Certificate( loads( os.environ.get( "GOOGLE_APPLICATION_CREDENTIALS" ) ) )
 
 firebase_admin.initialize_app( credential, FIREBASE_CFG )
 
