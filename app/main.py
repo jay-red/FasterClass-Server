@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import request
+from flask import Response
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
@@ -14,22 +14,34 @@ credential = credentials.Certificate( loads( os.environ.get( "GOOGLE_APPLICATION
 
 firebase_admin.initialize_app( credential, FIREBASE_CFG )
 
+LESSONS = {}
+
 app = Flask(__name__)
 
-@app.route("/")
+@app.route( "/" )
 def home_view():
-	return dumps( db.reference( "/" ).get() )
+	return ""
 
-@app.route("/seed")
-def hash():
-	args = request.args
-	seed = "git seed"
-	if args:
-		coords = (args["lat"], args["long"])
-		seed = -1
-		if coords:
-			new_coords = get_geocode_coords(coords)
-			seed = hash_coords(new_coords)
-		print(seed)
-	return f"<h1>{seed}</h1>"
-
+@app.route( "/code/<uid>/<lesson>/<file_name>.<ext>" )
+def get_file( uid = None, lesson = None, file_name = None, ext = None ):
+	print(uid, lesson, file_name, ext)
+	if uid and lesson and file_name and ext:
+		ref = db.reference( "/code/" + uid + "/" + lesson + "/" + file_name + ext )
+		f = ref.get()
+		resp = None
+		if f:
+			resp = Response( f )
+			resp.headers[ "Access-Control-Allow-Origin" ] = "*"
+		else:
+			resp = Response("/* Not found. */")
+			resp.headers[ "Access-Control-Allow-Origin" ] = "*"
+		ext = ext.lower()
+		if ext == "js":
+			resp.headers[ "content-type" ] = "application/javascript; charset=utf-8"
+		elif ext == "css":
+			resp.headers[ "content-type" ] = "text/css; charset=utf-8"
+		return resp
+	else:
+		resp = Response("/* Not found. */")
+		resp.headers[ "Access-Control-Allow-Origin" ] = "*"
+		return resp
